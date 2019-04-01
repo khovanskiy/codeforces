@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PhotoTaker</string>
+    <string name="take_photo">Take photo</string>
+    <string name="NoFilter">Обычный</string>
+    <string name="Negative">Негатив</string>
+    <string name="Grayscale">Оттенки серого</string>
+    <string name="Sepia">Сепия</string>
+    <string name="Polaroid">Поляроид</string>
+    <string name="VintageBlackAndWhite">Старинный</string>
+    <string name="Nashville">Nashville</string>
+    <string name="Sierra">Sierra</string>
+    <string name="Valencia">Valencia</string>
+    <string name="Walden">Walden</string>
+    <string name="Hudson">Hudson</string>
+    <string name="Amaro">Amaro</string>
+    <string name="Rise">Rise</string>
+    <string name="Y1977">Y1977</string>
+    <string name="Kelvin">Kelvin</string>
+    <string name="Xpro">Xpro</string>
+    <string name="Toaster">Toaster</string>
+    <string name="TealAndOrange">TealAndOrange</string>
+    <string name="Smooth">Smooth</string>
+    <string name="ColorReduction">ColorReduction</string>
+    <string name="Random">Random</string>
+    <string name="Special">Special</string>
+    <string name="Brightness">Яркость</string>
+    <string name="Contrast">Контраст</string>
+    <string name="Saturation">Насыщенность</string>
+    <string name="DarkRegions">Тени</string>
+    <string name="LightRegions">Светлые участки</string>
+</resources>

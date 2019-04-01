@@ -2,112 +2,157 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class Matching {
-    static BufferedReader in;
-    static BufferedWriter out;
-    static StringTokenizer st;
-    static Vector<Vector<Egle>> graph;
+	static class Node {
+		public int u;
+		public long cost;
 
-    static int nextInt() {
-        return Integer.parseInt(nextToken());
-    }
+		public Node(int u, long cost) {
+			this.u = u;
+			this.cost = cost;
+		}
+	}
 
-    static long nextLong() {
-        return Long.parseLong(nextToken());
-    }
+	static class Edge implements Comparable<Edge> {
+		public int u;
+		public int v;
+		public long cost;
 
-    static String nextToken() {
-        while (st == null || !st.hasMoreTokens()) {
-            try {
-                st = new StringTokenizer(in.readLine());
-            } catch (Exception e) {
-                return "0";
-            }
-        }
-        return st.nextToken();
-    }
+		public Edge(int u, int v, long cost) {
+			this.u = u;
+			this.v = v;
+			this.cost = cost;
+		}
 
-    static void print(int[] d) {
-        for (int i = 0; i < d.length; i++) {
-            System.out.print(d[i] + " ");
-        }
-        System.out.print("\n");
-    }
+		@Override
+		public int compareTo(Edge other) {
+			if (this.cost < other.cost) {
+				return -1;
+			} else if (this.cost > other.cost) {
+				return 1;
+			}
+			return 0;
+		}
+	}
 
-    static void print(int[][] d) {
-        for (int i = 0; i < d.length; i++) {
-            for (int j = 0; j < d[i].length; j++) {
-                System.out.print(d[i][j] + " ");
-            }
-            System.out.print("\n");
-        }
-    }
+	static String nextToken() {
+		while (st == null || !st.hasMoreTokens()) {
+			try {
+				st = new StringTokenizer(in.readLine());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return st.nextToken();
+	}
 
-    static void print(String[][] d) {
-        for (int i = 0; i < d.length; i++) {
-            for (int j = 0; j < d[i].length; j++) {
-                System.out.print(d[i][j] + " ");
-            }
-            System.out.print("\n");
-        }
-    }
+	static int nextInt() {
+		return Integer.parseInt(nextToken());
+	}
 
-    public static void dfs(int v, boolean[] used, long[] a, long[] b, long[] c) {
-        used[v] = true;
-        for (int i = 0; i < graph.get(v).size(); i++) {
-            if (!used[graph.get(v).get(i).to]) {
-                dfs(graph.get(v).get(i).to, used, a, b, c);
-                a[v] = Math.max(a[v], b[graph.get(v).get(i).to] + graph.get(v).get(i).w - c[graph.get(v).get(i).to]);
-                b[v] += c[graph.get(v).get(i).to];
-            }
-        }
-        a[v] += b[v];
-        c[v] = Math.max(a[v], b[v]);
-    }
+	static void trace(int s) {
+		System.out.println(s);
+	}
 
-    public static void main(String args[]) {
-        try {
-            in = new BufferedReader(new FileReader("matching.in"));
-            out = new BufferedWriter(new FileWriter("matching.out"));
-            int n = nextInt();
-            long[] a = new long[n];
-            long[] b = new long[n];
-            long[] c = new long[n];
-            boolean[] used = new boolean[n];
-            graph = new Vector<Vector<Egle>>();
-            for (int i = 0; i < n; i++) {
-                graph.add(new Vector<Egle>());
-            }
-            for (int i = 0; i < n - 1; i++) {
-                int v1 = nextInt() - 1;
-                int v2 = nextInt() - 1;
-                int w = nextInt();
-                graph.get(v1).add(new Egle(v2, w));
-                graph.get(v2).add(new Egle(v1, w));
-            }
-            dfs(0, used, a, b, c);
-            //print(c);
-            //print(a);
-            //print(b);
-            out.write(c[0] + "");
-            in.close();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-    }
+	static void trace(String s) {
+		System.out.println(s);
+	}
 
-    static class Egle {
-        public int to;
-        public int w;
+	static boolean K(int v, int m) {
+		if (used[v]) {
+			return false;
+		}
 
-        public Egle(int to, int w) {
-            this.to = to;
-            this.w = w;
-        }
-    }
+		used[v] = true;
+		for (int i = 0; i < m; ++i) {
+			if (g[v][i] == 0) {
+				continue;
+			}
+			int to = i;
+			if (matching[to] == -1 || K(matching[to], m)) {
+				matching[to] = v;
+				return true;
+			}
+
+		}
+		return false;
+	}
+
+	static StringTokenizer st;
+	static BufferedReader in;
+	static BufferedWriter out;
+	static int[][] g;
+	static int[] matching;
+	static boolean[] used;
+
+	static final long INF = Integer.MAX_VALUE;
+
+	public static void main(String[] args) {
+		try {
+			in = new BufferedReader(new FileReader("matching.in"));
+			out = new BufferedWriter(new FileWriter("matching.out"));
+			int n = nextInt();
+			int m = nextInt();
+			int k = nextInt();
+
+			g = new int[n][m];
+
+			for (int i = 0; i < k; ++i) {
+				int a = nextInt() - 1;
+				int b = nextInt() - 1;
+				g[a][b] = 1;
+			}
+
+			matching = new int[n + m];
+			for (int i = 0; i < m; ++i) {
+				matching[i] = -1;
+			}
+
+			boolean[] temp = new boolean[n];
+
+			for (int i = 0; i < n; ++i) {
+				for (int j = 0; j < m; ++j) {
+					if (g[i][j] == 0)
+						continue;
+					if (matching[j] == -1) {
+						matching[j] = i;
+						temp[i] = true;
+						break;
+					}
+				}
+			}
+
+			used = new boolean[n];
+
+			for (int i = 0; i < n; ++i) {
+				if (temp[i]) {
+					continue;
+				}
+
+				for (int j = 0; j < n; ++j) {
+					used[j] = false;
+				}
+
+				K(i, m);
+			}
+
+			int count = 0;
+			for (int i = 0; i < m; ++i) {
+				if (matching[i] != -1) {
+					// System.out.print((array[i] + 1) + " " + (i + 1)+"\n");
+					++count;
+				}
+			}
+			out.write(count + "");
+
+			in.close();
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

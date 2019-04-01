@@ -1,0 +1,1 @@
+javadoc -linkoffline http://docs.oracle.com/javase/7/docs/api/ http://docs.oracle.com/javase/7/docs/api/ -sourcepath src/ -d javadocs ru.ifmo.ctddev.khovanskiy.task6 ru.ifmo.ctddev.khovanskiy.task7 ru.ifmo.ctddev.khovanskiy.task8.client ru.ifmo.ctddev.khovanskiy.task8.server ru.ifmo.ctddev.khovanskiy.task9

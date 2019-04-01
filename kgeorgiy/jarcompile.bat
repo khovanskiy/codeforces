@@ -1,0 +1,1 @@
+jar cmf manifest.txt Grep.jar -C ./bin/ .

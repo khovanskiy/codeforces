@@ -1,104 +1,181 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.PriorityQueue;
 
+/*************************************************************************
+ *  Compilation:  javac Huffman.java
+ *  Execution:    java Huffman - < input.txt   (compress)
+ *  Execution:    java Huffman + < input.txt   (expand)
+ *  Dependencies: BinaryIn.java BinaryOut.java
+ *  Data files:   http://algs4.cs.princeton.edu/55compression/abra.txt
+ *                http://algs4.cs.princeton.edu/55compression/tinytinyTale.txt
+ *
+ *  Compress or expand a binary input stream using the Huffman algorithm.
+ *
+ *  % java Huffman - < abra.txt | java BinaryDump 60
+ *  010100000100101000100010010000110100001101010100101010000100
+ *  000000000000000000000000000110001111100101101000111110010100
+ *  120 bits
+ *
+ *  % java Huffman - < abra.txt | java Huffman +
+ *  ABRACADABRA!
+ *  
+ *
+ *************************************************************************/
 
 public class Huffman {
-    static BufferedReader in;
-    static BufferedWriter out;
-    static StringTokenizer st;
 
-    static String nextToken() {
-        while (st == null || !st.hasMoreTokens()) {
-            try {
-                st = new StringTokenizer(in.readLine());
-            } catch (Exception e) {
-                return "0";
+    // alphabet size of extended ASCII
+    private static final int R = 256;
+
+    // Huffman trie node
+    private static class Node implements Comparable<Node> {
+        private final char ch;
+        private final int freq;
+        private final Node left, right;
+
+        Node(char ch, int freq, Node left, Node right) {
+            this.ch    = ch;
+            this.freq  = freq;
+            this.left  = left;
+            this.right = right;
+        }
+
+        // is the node a leaf node?
+        private boolean isLeaf() {
+            assert (left == null && right == null) || (left != null && right != null);
+            return (left == null && right == null);
+        }
+
+        // compare, based on frequency
+        public int compareTo(Node that) {
+            return this.freq - that.freq;
+        }
+    }
+
+
+    // compress bytes from standard input and write to standard output
+    public static void compress() {
+        // read the input
+        String s = BinaryStdIn.readString();
+        char[] input = s.toCharArray();
+
+        // tabulate frequency counts
+        int[] freq = new int[R];
+        for (int i = 0; i < input.length; i++)
+            freq[input[i]]++;
+
+        // build Huffman trie
+        Node root = buildTrie(freq);
+
+        // build code table
+        String[] st = new String[R];
+        buildCode(st, root, "");
+
+        // print trie for decoder
+        writeTrie(root);
+
+        // print number of bytes in original uncompressed message
+        BinaryStdOut.write(input.length);
+
+        // use Huffman code to encode input
+        for (int i = 0; i < input.length; i++) {
+            String code = st[input[i]];
+            for (int j = 0; j < code.length(); j++) {
+                if (code.charAt(j) == '0') {
+                    BinaryStdOut.write(false);
+                }
+                else if (code.charAt(j) == '1') {
+                    BinaryStdOut.write(true);
+                }
+                else throw new IllegalStateException("Illegal state");
             }
         }
-        return st.nextToken();
+
+        // close output stream
+        BinaryStdOut.close();
     }
 
-    static int nextInt() {
-        return Integer.parseInt(nextToken());
-    }
+    // build the Huffman trie given frequencies
+    private static Node buildTrie(int[] freq) {
 
-    static String[] gen(String s) {
-        String[] temp = new String[s.length()];
-        StringBuilder sb = new StringBuilder(s);
-        for (int i = 0; i < s.length(); i++) {
-            char c = sb.charAt(0);
-            sb.delete(0, 1);
-            sb.append(c);
-            temp[i] = sb.toString();
+        // initialze priority queue with singleton trees
+        PriorityQueue<Node> pq = new PriorityQueue<Node>();
+        for (char i = 0; i < R; i++)
+            if (freq[i] > 0)
+                pq.add(new Node(i, freq[i], null, null));
+
+        // merge two smallest trees
+        while (pq.size() > 1) {
+            Node left  = pq.poll();
+            Node right = pq.poll();
+            Node parent = new Node('\0', left.freq + right.freq, left, right);
+            pq.add(parent);
         }
-        return temp;
+        return pq.poll();
     }
 
-    static public long getDepth(Vertex v, int k) {
-        if (v.children.size() == 0) return k * v.p;
-        long res = 0;
-        for (int i = 0; i < v.children.size(); ++i) {
-            res += getDepth(v.children.get(i), k + 1);
-        }
-        return res;
-    }
 
-    public static void main(String args[]) {
-        try {
-            in = new BufferedReader(new FileReader("huffman.in"));
-            out = new BufferedWriter(new FileWriter("huffman.out"));
-            int n = nextInt();
-            Vector<Vertex> v = new Vector<Vertex>();
-            for (int i = 0; i < n; ++i) {
-                long p = nextInt();
-                v.add(new Vertex(p));
-            }
-            Comparator cmp = new MyComparator();
-            while (v.size() > 1) {
-                Collections.sort(v, cmp);
-                Vertex v1 = v.get(0);
-                Vertex v2 = v.get(1);
-                Vertex vn = new Vertex(v1.p + v2.p);
-                vn.children.add(v1);
-                vn.children.add(v2);
-                v.remove(0);
-                v.remove(0);
-                v.add(vn);
-            }
-            long d = getDepth(v.get(0), 0);
-            out.write(d + "");
-            in.close();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+    // write bitstring-encoded trie to standard output
+    private static void writeTrie(Node x) {
+        if (x.isLeaf()) {
+            BinaryStdOut.write(true);
+            BinaryStdOut.write(x.ch, 8);
             return;
         }
+        BinaryStdOut.write(false);
+        writeTrie(x.left);
+        writeTrie(x.right);
     }
 
-    static class Vertex {
-        public String c;
-        public long p;
-        public Vector<Vertex> children;
-
-        public Vertex(long p) {
-            children = new Vector<Vertex>();
-            this.p = p;
+    // make a lookup table from symbols and their encodings
+    private static void buildCode(String[] st, Node x, String s) {
+        if (!x.isLeaf()) {
+            buildCode(st, x.left,  s + '0');
+            buildCode(st, x.right, s + '1');
+        }
+        else {
+            st[x.ch] = s;
         }
     }
 
-    static class MyComparator implements Comparator {
-        public int compare(Object obj1, Object obj2) {
-            Vertex v1 = (Vertex) obj1;
-            Vertex v2 = (Vertex) obj2;
-            if (v1.p < v2.p) return -1;
-            if (v1.p > v2.p) return 1;
-            return 0;
+
+    // expand Huffman-encoded input from standard input and write to standard output
+    public static void expand() {
+
+        // read in Huffman trie from input stream
+        Node root = readTrie(); 
+
+        // number of bytes to write
+        int length = BinaryStdIn.readInt();
+
+        // decode using the Huffman trie
+        for (int i = 0; i < length; i++) {
+            Node x = root;
+            while (!x.isLeaf()) {
+                boolean bit = BinaryStdIn.readBoolean();
+                if (bit) x = x.right;
+                else     x = x.left;
+            }
+            BinaryStdOut.write(x.ch, 8);
+        }
+        BinaryStdOut.close();
+    }
+
+
+    private static Node readTrie() {
+        boolean isLeaf = BinaryStdIn.readBoolean();
+        if (isLeaf) {
+            return new Node(BinaryStdIn.readChar(), -1, null, null);
+        }
+        else {
+            return new Node('\0', -1, readTrie(), readTrie());
         }
     }
+
+
+    public static void main(String[] args) {
+        if      (args[0].equals("-")) compress();
+        else if (args[0].equals("+")) expand();
+        else throw new IllegalArgumentException("Illegal command line argument");
+    }
+
 }
